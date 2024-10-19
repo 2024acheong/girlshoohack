@@ -1,38 +1,100 @@
+/* App Styling */
 .App {
   text-align: center;
+  margin: 0 auto;
+  max-width: 600px;
+  padding: 20px;
+  font-family: 'Arial', sans-serif;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+h1 {
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 20px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+h2 {
+  font-size: 1.8rem;
+  margin-top: 20px;
+  color: #555;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+h3 {
+  font-size: 1.5rem;
+  margin-top: 15px;
+  color: #666;
+}
+
+.input-methods {
+  margin-bottom: 20px;
+}
+
+button {
+  margin: 10px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+  border: none;
   color: white;
+  background-color: #007bff;
+  transition: background-color 0.3s ease;
 }
 
-.App-link {
-  color: #61dafb;
+button:hover {
+  background-color: #0056b3;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+button.add-btn {
+  background-color: #28a745;
+}
+
+button.add-btn:hover {
+  background-color: #218838;
+}
+
+button.finish-btn {
+  background-color: #ff8800;
+}
+
+button.finish-btn:hover {
+  background-color: #ff6600;
+}
+
+/* Manual input form styling */
+.manual-input {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+input {
+  padding: 10px;
+  font-size: 1rem;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.camera-section video {
+  width: 100%;
+  height: auto;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  margin-bottom: 10px;
 }
