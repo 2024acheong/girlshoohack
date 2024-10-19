@@ -14,6 +14,7 @@ def recognize_food():
 
     file = request.files['file']
 
+    # Send the image to Spoonacular's food recognition API
     url = "https://api.spoonacular.com/food/images/analyze"
     files = {'file': file}
     
