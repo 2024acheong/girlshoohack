@@ -15,6 +15,7 @@ const mockDatabase = {
 };
 
 function App() {
+<<<<<<< Updated upstream
   const [user, setUser] = useState(null);
   const [totalCalories, setTotalCalories] = useState(0);
   const [lifetimeEntries, setLifetimeEntries] = useState([]);
@@ -26,6 +27,11 @@ function App() {
   const [manualCalories, setManualCalories] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+=======
+  const [recognizedFood, setRecognizedFood] = useState(null);
+  const [calories, setCalories] = useState(null);
+  const [error, setError] = useState(null);
+>>>>>>> Stashed changes
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -36,7 +42,11 @@ function App() {
     videoRef.current.srcObject = stream;
   };
 
+<<<<<<< Updated upstream
   // Capture the photo from the video feed
+=======
+  // Capture an image from the video feed
+>>>>>>> Stashed changes
   const captureImage = () => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
@@ -45,6 +55,7 @@ function App() {
     const context = canvas.getContext('2d');
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+<<<<<<< Updated upstream
     // Simulate food recognition (replace with actual API recognition)
     const mockRecognizedFood = 'burger'; // Assume mock database recognizes a burger
     setRecognizedFood(mockDatabase[mockRecognizedFood]);
@@ -75,6 +86,38 @@ function App() {
     setTotalCalories(totalCalories + entryCalories);
     setLifetimeEntries([...lifetimeEntries, { date: new Date().toLocaleString(), foods: currentEntry, totalCalories: entryCalories }]);
     setCurrentEntry([]);
+=======
+    canvas.toBlob((blob) => {
+      uploadImage(blob); // Call the function to upload the image to the backend
+    }, 'image/jpeg');
+  };
+
+  // Upload the captured image to the backend
+  const uploadImage = (imageBlob) => {
+    const formData = new FormData();
+    formData.append('file', imageBlob);
+
+    fetch('http://127.0.0.1:5000/api/recognize-food', {
+      method: 'POST',
+      body: formData
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          setError(data.error);
+          setRecognizedFood(null);
+          setCalories(null);
+        } else {
+          setRecognizedFood(data.recognized_food);
+          setCalories(data.calories);
+          setError(null);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        setError('An error occurred while processing the image.');
+      });
+>>>>>>> Stashed changes
   };
 
   // Reset daily calories at midnight
@@ -131,6 +174,7 @@ function App() {
     <div className="App">
       <h1>Food Calorie Tracker</h1>
 
+<<<<<<< Updated upstream
       {/* Authentication Section */}
       {user ? (
         <div>
@@ -250,6 +294,29 @@ function App() {
           <p>No entries yet</p>
         )}
       </div>
+=======
+      <div className="camera-section">
+        <video ref={videoRef} autoPlay style={{ width: '100%', height: 'auto' }}></video>
+        <button onClick={startCamera}>Start Camera</button>
+        <button onClick={captureImage}>Capture</button>
+        <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
+      </div>
+
+      {/* Display recognized food and calories */}
+      {recognizedFood && (
+        <div>
+          <h2>Recognized Food: {recognizedFood}</h2>
+          <h3>Calories: {calories}</h3>
+        </div>
+      )}
+
+      {/* Display error message */}
+      {error && (
+        <div className="error">
+          <p>{error}</p>
+        </div>
+      )}
+>>>>>>> Stashed changes
     </div>
   );
 }
