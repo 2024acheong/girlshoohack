@@ -1,3 +1,4 @@
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import React, { useState, useRef, useEffect } from 'react';
 import { auth } from './firebase';
 import {
@@ -24,8 +25,10 @@ function App() {
   const [recognizedFood, setRecognizedFood] = useState(null);
   const [manualFood, setManualFood] = useState('');
   const [manualCalories, setManualCalories] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [signUpEmail, setSignUpEmail] = useState('');
+  const [signUpPassword, setSignUpPassword] = useState('');
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -99,10 +102,10 @@ function App() {
   const handleSignUp = async (e) => {
     e.preventDefault();
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, signUpEmail, signUpPassword);
       setUser(userCredential.user);
-      setEmail('');
-      setPassword('');
+      setSignUpEmail('');
+      setSignUpPassword('');
     } catch (error) {
       console.error("Error signing up: ", error);
     }
@@ -112,10 +115,10 @@ function App() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
       setUser(userCredential.user);
-      setEmail('');
-      setPassword('');
+      setLoginEmail('');
+      setLoginPassword('');
     } catch (error) {
       console.error("Error logging in: ", error);
     }
@@ -128,129 +131,167 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <h1>Food Calorie Tracker</h1>
+    <Router>
+      <Routes>
+        {/* Login Route */}
+        <Route
+          path="/login"
+          element={
+            user ? (
+              <Navigate to="/" replace />
+            ) : (
+              <div className="auth">
+                <form onSubmit={handleSignUp}>
+                  <h2>Sign Up</h2>
+                  <label>
+                    Email:
+                    <input
+                      type="email"
+                      value={signUpEmail}
+                      onChange={(e) => setSignUpEmail(e.target.value)}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Password:
+                    <input
+                      type="password"
+                      value={signUpPassword}
+                      onChange={(e) => setSignUpPassword(e.target.value)}
+                      required
+                    />
+                  </label>
+                  <button type="submit">Sign Up</button>
+                </form>
+                <form onSubmit={handleLogin}>
+                  <h2>Login</h2>
+                  <label>
+                    Email:
+                    <input
+                      type="email"
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Password:
+                    <input
+                      type="password"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      required
+                    />
+                  </label>
+                  <button type="submit">Login</button>
+                </form>
+              </div>
+            )
+          }
+        />
+    {/* Protected App Route */}
+    <Route
+          path="/"
+          element={
+            user ? (
+              <div className="App">
+                <h1>Food Calorie Tracker</h1>
+                <div>
+                  <h2>Welcome, {user.email}!</h2>
+                  <button onClick={handleLogout}>Logout</button>
+                </div>
+                <div className="input-methods">
+                  <button onClick={() => setFoodInputMethod('manual')}>Manual Input</button>
+                  <button onClick={startCamera}>Take a Photo</button>
+                </div>
 
-      {/* Authentication Section */}
-      {user ? (
-        <div>
-          <h2>Welcome, {user.email}!</h2>
-          <button onClick={handleLogout}>Logout</button>
-        </div>
-      ) : (
-        <div className="auth">
-          <form onSubmit={handleSignUp}>
-            <h2>Sign Up</h2>
-            <label>
-              Email:
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </label>
-            <label>
-              Password:
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-            </label>
-            <button type="submit">Sign Up</button>
-          </form>
-          <form onSubmit={handleLogin}>
-            <h2>Login</h2>
-            <label>
-              Email:
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </label>
-            <label>
-              Password:
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-            </label>
-            <button type="submit">Login</button>
-          </form>
-        </div>
-      )}
+                {/* Manual food input */}
+                {foodInputMethod === 'manual' && (
+                  <form onSubmit={handleManualSubmit} className="manual-input">
+                    <h2>Manual Food Entry</h2>
+                    <label>
+                      Food:
+                      <input
+                        type="text"
+                        value={manualFood}
+                        onChange={(e) => setManualFood(e.target.value)}
+                        required
+                        
+                      />
+                    </label>
+                    <label>
+                      Calories:
+                      <input
+                        type="number"
+                        value={manualCalories}
+                        onChange={(e) => setManualCalories(e.target.value)}
+                        required
+                      />
+                    </label>
+                    <button type="submit" className="add-btn">Add Food</button>
+                  </form>
+                )}
 
-      <div className="input-methods">
-        <button onClick={() => setFoodInputMethod('manual')}>Manual Input</button>
-        <button onClick={startCamera}>Take a Photo</button>
-      </div>
+                {/* Camera and photo capture */}
+                {foodInputMethod === 'camera' && (
+                  <div className="camera-section">
+                    <video ref={videoRef} autoPlay style={{ width: '100%', height: 'auto' }}></video>
+                    <button onClick={captureImage} className="capture-btn">Capture</button>
+                    <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
+                    {recognizedFood && (
+                      <div className="recognized-food">
+                        <p>Recognized Food: {recognizedFood.name} - {recognizedFood.calories} calories</p>
+                        <button onClick={handleAddRecognizedFood} className="add-btn">Add to Entry</button>
+                      </div>
+                    )}
+                  </div>
+                )}
 
-      {/* Manual food input */}
-      {foodInputMethod === 'manual' && (
-        <form onSubmit={handleManualSubmit} className="manual-input">
-          <h2>Manual Food Entry</h2>
-          <label>
-            Food:
-            <input
-              type="text"
-              value={manualFood}
-              onChange={(e) => setManualFood(e.target.value)}
-              required
-              
-            />
-          </label>
-          <label>
-            Calories:
-            <input
-              type="number"
-              value={manualCalories}
-              onChange={(e) => setManualCalories(e.target.value)}
-              required
-            />
-          </label>
-          <button type="submit" className="add-btn">Add Food</button>
-        </form>
-      )}
+                {/* Display current entry */}
+                {currentEntry.length > 0 && (
+                  <div className="current-entry">
+                    <h3>Current Entry</h3>
+                    <ul>
+                      {currentEntry.map((food, index) => (
+                        <li key={index}>{food.name} - {food.calories} calories</li>
+                      ))}
+                    </ul>
+                    <button onClick={handleFinishEntry} className="finish-btn">Finish Entry</button>
+                  </div>
+                )}
 
-      {/* Camera and photo capture */}
-      {foodInputMethod === 'camera' && (
-        <div className="camera-section">
-          <video ref={videoRef} autoPlay style={{ width: '100%', height: 'auto' }}></video>
-          <button onClick={captureImage} className="capture-btn">Capture</button>
-          <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
-          {recognizedFood && (
-            <div className="recognized-food">
-              <p>Recognized Food: {recognizedFood.name} - {recognizedFood.calories} calories</p>
-              <button onClick={handleAddRecognizedFood} className="add-btn">Add to Entry</button>
-            </div>
-          )}
-        </div>
-      )}
+                <h2>Daily Calories: {dailyCalories}</h2>
 
-      {/* Display current entry */}
-      {currentEntry.length > 0 && (
-        <div className="current-entry">
-          <h3>Current Entry</h3>
-          <ul>
-            {currentEntry.map((food, index) => (
-              <li key={index}>{food.name} - {food.calories} calories</li>
-            ))}
-          </ul>
-          <button onClick={handleFinishEntry} className="finish-btn">Finish Entry</button>
-        </div>
-      )}
+                <h2>Total Lifetime Calories: {totalCalories}</h2>
 
-      <h2>Daily Calories: {dailyCalories}</h2>
-
-      <h2>Total Lifetime Calories: {totalCalories}</h2>
-
-      {/* Lifetime entries */}
-      <div className="lifetime-entries">
-        <h3>Lifetime Entries</h3>
-        {lifetimeEntries.length > 0 ? (
-          <ul>
-            {lifetimeEntries.map((entry, index) => (
-              <li key={index}>
-                {entry.date} - {entry.totalCalories} calories
-                <ul>
-                  {entry.foods.map((food, i) => (
-                    <li key={i}>{food.name} - {food.calories} calories</li>
-                  ))}
-                </ul>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No entries yet</p>
-        )}
-      </div>
-    </div>
+                {/* Lifetime entries */}
+                <div className="lifetime-entries">
+                  <h3>Lifetime Entries</h3>
+                  {lifetimeEntries.length > 0 ? (
+                    <ul>
+                      {lifetimeEntries.map((entry, index) => (
+                        <li key={index}>
+                          {entry.date} - {entry.totalCalories} calories
+                          <ul>
+                            {entry.foods.map((food, i) => (
+                              <li key={i}>{food.name} - {food.calories} calories</li>
+                            ))}
+                          </ul>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No entries yet</p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+      </Routes>
+    </Router>
   );
 }
 
