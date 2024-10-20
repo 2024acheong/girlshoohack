@@ -1,4 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { auth } from './firebase';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut
+} from 'firebase/auth';
 import './App.css';
 
 // Mock food recognition database (replace with API calls)
@@ -9,6 +15,7 @@ const mockDatabase = {
 };
 
 function App() {
+  const [user, setUser] = useState(null);
   const [totalCalories, setTotalCalories] = useState(0);
   const [lifetimeEntries, setLifetimeEntries] = useState([]);
   const [dailyCalories, setDailyCalories] = useState(0);
@@ -17,6 +24,8 @@ function App() {
   const [recognizedFood, setRecognizedFood] = useState(null);
   const [manualFood, setManualFood] = useState('');
   const [manualCalories, setManualCalories] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -86,9 +95,76 @@ function App() {
     return () => clearTimeout(timer); // Cleanup
   }, []);
 
+  // Sign up a new user
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      setUser(userCredential.user);
+      setEmail('');
+      setPassword('');
+    } catch (error) {
+      console.error("Error signing up: ", error);
+    }
+  };
+
+  // Log in an existing user
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      setUser(userCredential.user);
+      setEmail('');
+      setPassword('');
+    } catch (error) {
+      console.error("Error logging in: ", error);
+    }
+  };
+
+  // Log out the current user
+  const handleLogout = async () => {
+    await signOut(auth);
+    setUser(null);
+  };
+
   return (
     <div className="App">
       <h1>Food Calorie Tracker</h1>
+
+      {/* Authentication Section */}
+      {user ? (
+        <div>
+          <h2>Welcome, {user.email}!</h2>
+          <button onClick={handleLogout}>Logout</button>
+        </div>
+      ) : (
+        <div className="auth">
+          <form onSubmit={handleSignUp}>
+            <h2>Sign Up</h2>
+            <label>
+              Email:
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </label>
+            <label>
+              Password:
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            </label>
+            <button type="submit">Sign Up</button>
+          </form>
+          <form onSubmit={handleLogin}>
+            <h2>Login</h2>
+            <label>
+              Email:
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </label>
+            <label>
+              Password:
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            </label>
+            <button type="submit">Login</button>
+          </form>
+        </div>
+      )}
 
       <div className="input-methods">
         <button onClick={() => setFoodInputMethod('manual')}>Manual Input</button>
