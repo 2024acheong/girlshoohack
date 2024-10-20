@@ -1,34 +1,21 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import './App.css';
-
-// Mock food recognition database (replace with API calls)
-const mockDatabase = {
-  'burger': { name: 'Burger', calories: 354 },
-  'apple': { name: 'Apple', calories: 95 },
-  'pizza': { name: 'Pizza', calories: 285 }
-};
 
 function App() {
   const [totalCalories, setTotalCalories] = useState(0);
-  const [lifetimeEntries, setLifetimeEntries] = useState([]);
-  const [dailyCalories, setDailyCalories] = useState(0);
   const [currentEntry, setCurrentEntry] = useState([]);
-  const [foodInputMethod, setFoodInputMethod] = useState('');
   const [recognizedFood, setRecognizedFood] = useState(null);
-  const [manualFood, setManualFood] = useState('');
-  const [manualCalories, setManualCalories] = useState('');
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
-  // Start camera
+  // Start the camera
   const startCamera = async () => {
-    setFoodInputMethod('camera');
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     videoRef.current.srcObject = stream;
   };
 
-  // Capture the photo from the video feed
-  const captureImage = () => {
+  // Capture an image from the webcam, send it to the backend for recognition
+  const captureImage = async () => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
     canvas.width = video.videoWidth;
@@ -36,144 +23,84 @@ function App() {
     const context = canvas.getContext('2d');
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Simulate food recognition (replace with actual API recognition)
-    const mockRecognizedFood = 'burger'; // Assume mock database recognizes a burger
-    setRecognizedFood(mockDatabase[mockRecognizedFood]);
+    // Convert the canvas content to an image blob (JPEG format)
+    canvas.toBlob(async (blob) => {
+      const formData = new FormData();
+      formData.append('file', blob);  // Append the blob to FormData
+
+      try {
+        // Send the captured image to the backend for food recognition
+        const response = await fetch('http://127.0.0.1:5000/api/recognize-food', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // If the request was successful, extract the food category and calories
+          const foodCategory = data.category.name;
+          const foodCalories = data.calories.value;
+
+          // Update the state with the recognized food and calories
+          setRecognizedFood({ category: foodCategory, calories: foodCalories });
+          setCurrentEntry([...currentEntry, { name: foodCategory, calories: foodCalories }]);
+        } else {
+          console.error('Error:', data.error);
+          alert('Failed to recognize food');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error recognizing food. Please try again.');
+      }
+    }, 'image/jpeg');  // Convert the canvas content to JPEG format
   };
 
-  // Add recognized food to the current entry
-  const handleAddRecognizedFood = () => {
-    if (recognizedFood) {
-      setCurrentEntry([...currentEntry, recognizedFood]);
-      setRecognizedFood(null);
-    }
-  };
-
-  // Handle manual input of food
-  const handleManualSubmit = (e) => {
-    e.preventDefault();
-    if (manualFood && manualCalories) {
-      setCurrentEntry([...currentEntry, { name: manualFood, calories: parseInt(manualCalories) }]);
-      setManualFood('');
-      setManualCalories('');
-    }
-  };
-
-  // Add current entry to the daily and lifetime trackers
+  // Finish and save the current food entry, and update the total calories
   const handleFinishEntry = () => {
     const entryCalories = currentEntry.reduce((acc, food) => acc + food.calories, 0);
-    setDailyCalories(dailyCalories + entryCalories);
     setTotalCalories(totalCalories + entryCalories);
-    setLifetimeEntries([...lifetimeEntries, { date: new Date().toLocaleString(), foods: currentEntry, totalCalories: entryCalories }]);
     setCurrentEntry([]);
   };
-
-  // Reset daily calories at midnight
-  useEffect(() => {
-    const resetDailyCalories = () => {
-      setDailyCalories(0);
-    };
-
-    const midnight = new Date();
-    midnight.setHours(24, 0, 0, 0); // Set to midnight
-
-    const timeout = midnight.getTime() - new Date().getTime();
-    const timer = setTimeout(() => {
-      resetDailyCalories();
-      setInterval(resetDailyCalories, 24 * 60 * 60 * 1000); // Reset daily every 24 hours
-    }, timeout);
-
-    return () => clearTimeout(timer); // Cleanup
-  }, []);
 
   return (
     <div className="App">
       <h1>Food Calorie Tracker</h1>
 
-      <div className="input-methods">
-        <button onClick={() => setFoodInputMethod('manual')}>Manual Input</button>
-        <button onClick={startCamera}>Take a Photo</button>
-      </div>
+      {/* Button to start the webcam feed */}
+      <button onClick={startCamera}>Start Camera</button>
 
-      {/* Manual food input */}
-      {foodInputMethod === 'manual' && (
-        <form onSubmit={handleManualSubmit} className="manual-input">
-          <h2>Manual Food Entry</h2>
-          <label>
-            Food:
-            <input
-              type="text"
-              value={manualFood}
-              onChange={(e) => setManualFood(e.target.value)}
-              required
-              
-            />
-          </label>
-          <label>
-            Calories:
-            <input
-              type="number"
-              value={manualCalories}
-              onChange={(e) => setManualCalories(e.target.value)}
-              required
-            />
-          </label>
-          <button type="submit" className="add-btn">Add Food</button>
-        </form>
-      )}
+      {/* Webcam video feed */}
+      <video ref={videoRef} autoPlay style={{ width: '100%', height: 'auto' }}></video>
 
-      {/* Camera and photo capture */}
-      {foodInputMethod === 'camera' && (
-        <div className="camera-section">
-          <video ref={videoRef} autoPlay style={{ width: '100%', height: 'auto' }}></video>
-          <button onClick={captureImage} className="capture-btn">Capture</button>
-          <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
-          {recognizedFood && (
-            <div className="recognized-food">
-              <p>Recognized Food: {recognizedFood.name} - {recognizedFood.calories} calories</p>
-              <button onClick={handleAddRecognizedFood} className="add-btn">Add to Entry</button>
-            </div>
-          )}
+      {/* Button to capture image from the webcam */}
+      <button onClick={captureImage}>Capture Image</button>
+
+      {/* Hidden canvas used to capture the image */}
+      <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
+
+      {/* Display the recognized food and its calorie count */}
+      {recognizedFood && (
+        <div>
+          <p>Recognized Food: {recognizedFood.category} - {recognizedFood.calories} calories</p>
         </div>
       )}
 
-      {/* Display current entry */}
+      {/* Display the current entry with food items */}
       {currentEntry.length > 0 && (
-        <div className="current-entry">
+        <div>
           <h3>Current Entry</h3>
           <ul>
             {currentEntry.map((food, index) => (
               <li key={index}>{food.name} - {food.calories} calories</li>
             ))}
           </ul>
-          <button onClick={handleFinishEntry} className="finish-btn">Finish Entry</button>
+          <button onClick={handleFinishEntry}>Finish Entry</button>
         </div>
       )}
 
-      <h2>Daily Calories: {dailyCalories}</h2>
-
-      <h2>Total Lifetime Calories: {totalCalories}</h2>
-
-      {/* Lifetime entries */}
-      <div className="lifetime-entries">
-        <h3>Lifetime Entries</h3>
-        {lifetimeEntries.length > 0 ? (
-          <ul>
-            {lifetimeEntries.map((entry, index) => (
-              <li key={index}>
-                {entry.date} - {entry.totalCalories} calories
-                <ul>
-                  {entry.foods.map((food, i) => (
-                    <li key={i}>{food.name} - {food.calories} calories</li>
-                  ))}
-                </ul>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No entries yet</p>
-        )}
-      </div>
+      {/* Display total calories consumed */}
+      <h2>Total Calories: {totalCalories}</h2>
     </div>
   );
 }
