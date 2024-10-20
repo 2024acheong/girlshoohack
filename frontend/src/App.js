@@ -43,9 +43,13 @@ function App() {
   };
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   // Capture the photo from the video feed
 =======
   // Capture an image from the video feed
+>>>>>>> Stashed changes
+=======
+  // Capture the photo from the video feed and send it to backend
 >>>>>>> Stashed changes
   const captureImage = () => {
     const canvas = canvasRef.current;
@@ -56,9 +60,36 @@ function App() {
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     // Simulate food recognition (replace with actual API recognition)
     const mockRecognizedFood = 'burger'; // Assume mock database recognizes a burger
     setRecognizedFood(mockDatabase[mockRecognizedFood]);
+=======
+    // Convert the canvas content to an image blob (JPEG format)
+    canvas.toBlob(async (blob) => {
+      const formData = new FormData();
+      formData.append('file', blob);
+
+      try {
+        const response = await fetch('http://127.0.0.1:5000/api/recognize-food', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          const { recognized_food, calories } = data;
+          setRecognizedFood({ name: recognized_food, calories: parseFloat(calories) });
+        } else {
+          console.error('Error:', data.error);
+          alert('Failed to recognize food');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error recognizing food. Please try again.');
+      }
+    }, 'image/jpeg');
+>>>>>>> Stashed changes
   };
 
   // Add recognized food to the current entry
@@ -73,7 +104,7 @@ function App() {
   const handleManualSubmit = (e) => {
     e.preventDefault();
     if (manualFood && manualCalories) {
-      setCurrentEntry([...currentEntry, { name: manualFood, calories: parseInt(manualCalories) }]);
+      setCurrentEntry([...currentEntry, { name: manualFood, calories: parseFloat(manualCalories) }]);
       setManualFood('');
       setManualCalories('');
     }
@@ -81,7 +112,7 @@ function App() {
 
   // Add current entry to the daily and lifetime trackers
   const handleFinishEntry = () => {
-    const entryCalories = currentEntry.reduce((acc, food) => acc + food.calories, 0);
+    const entryCalories = currentEntry.reduce((acc, food) => acc + parseFloat(food.calories), 0);
     setDailyCalories(dailyCalories + entryCalories);
     setTotalCalories(totalCalories + entryCalories);
     setLifetimeEntries([...lifetimeEntries, { date: new Date().toLocaleString(), foods: currentEntry, totalCalories: entryCalories }]);
@@ -171,8 +202,84 @@ function App() {
   };
 
   return (
+<<<<<<< Updated upstream
     <div className="App">
       <h1>Food Calorie Tracker</h1>
+=======
+    <Router>
+      <Routes>
+        {/* Login Route */}
+        <Route
+          path="/login"
+          element={
+            user ? (
+              <Navigate to="/" replace />
+            ) : (
+              <div className="auth">
+                <form onSubmit={handleSignUp}>
+                  <h2>Sign Up</h2>
+                  <label>
+                    Email:
+                    <input
+                      type="email"
+                      value={signUpEmail}
+                      onChange={(e) => setSignUpEmail(e.target.value)}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Password:
+                    <input
+                      type="password"
+                      value={signUpPassword}
+                      onChange={(e) => setSignUpPassword(e.target.value)}
+                      required
+                    />
+                  </label>
+                  <button type="submit">Sign Up</button>
+                </form>
+                <form onSubmit={handleLogin}>
+                  <h2>Login</h2>
+                  <label>
+                    Email:
+                    <input
+                      type="email"
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Password:
+                    <input
+                      type="password"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      required
+                    />
+                  </label>
+                  <button type="submit">Login</button>
+                </form>
+              </div>
+            )
+          }
+        />
+    {/* Protected App Route */}
+    <Route
+          path="/"
+          element={
+            user ? (
+              <div className="App">
+                <h1>Food Calorie Tracker</h1>
+                <div>
+                  <h2>Welcome, {user.email}!</h2>
+                  <button onClick={handleLogout}>Logout</button>
+                </div>
+                <div className="input-methods">
+                  <button onClick={() => setFoodInputMethod('manual')}>Manual Input</button>
+                  <button onClick={startCamera}>Take a Photo</button>
+                </div>
+>>>>>>> Stashed changes
 
 <<<<<<< Updated upstream
       {/* Authentication Section */}

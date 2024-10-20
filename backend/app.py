@@ -107,7 +107,7 @@ def recognize_food():
                         unit = nutrient.get('unitName')
                         return jsonify({
                             "recognized_food": recognized_food,
-                            "calories": f"{energy_value} {unit}"
+                            "calories": f"{energy_value}"
                         })
             return jsonify({"error": "Energy (KCAL) information not found."}), 404
         else:
