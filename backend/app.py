@@ -1,20 +1,13 @@
 from flask import Flask, request, jsonify
-<<<<<<< Updated upstream
-=======
 from clarifai_grpc.channel.clarifai_channel import ClarifaiChannel
 from clarifai_grpc.grpc.api import resources_pb2, service_pb2, service_pb2_grpc
 from clarifai_grpc.grpc.api.status import status_code_pb2
->>>>>>> Stashed changes
 import requests
 from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for cross-origin requests
 
-# Spoonacular API key
-
-<<<<<<< Updated upstream
-API_KEY = "c2afae7bc91449aaa837aa5452c9a089"
-=======
 # Clarifai API details
 PAT = '56c61bace6e74d1ebff4c204f1fca3ef'
 USER_ID = 'kelvinbn'
@@ -30,34 +23,12 @@ channel = ClarifaiChannel.get_grpc_channel()
 stub = service_pb2_grpc.V2Stub(channel)
 metadata = (('authorization', 'Key ' + PAT),)
 
->>>>>>> Stashed changes
 @app.route('/api/recognize-food', methods=['POST'])
 def recognize_food():
-    # Check if an image file was uploaded
     if 'file' not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
 
     file = request.files['file']
-<<<<<<< Updated upstream
-
-    # Send the image to Spoonacular's food recognition API
-    url = "https://api.spoonacular.com/food/images/analyze"
-    files = {'file': file}
-    
-    try:
-        response = requests.post(url, files=files, params={"apiKey": API_KEY})
-        
-        # Check if the response from Spoonacular is successful
-        if response.status_code == 200:
-            return jsonify(response.json())  # Return the API's JSON response
-        else:
-            # Return an error message if Spoonacular prediction failed
-            return jsonify({"error": "Spoonacular model prediction failed", 
-                            "details": response.text}), 500
-    except Exception as e:
-        # Return a general error message if the API call itself failed
-        return jsonify({"error": f"Failed to call Spoonacular API: {str(e)}"}), 500
-=======
     image_bytes = file.read()
 
     # Clarifai API call to recognize food
@@ -114,7 +85,6 @@ def recognize_food():
             return jsonify({"error": "Failed to get data from FoodData Central."}), 500
     except Exception as e:
         return jsonify({"error": f"Failed to retrieve nutrition data: {str(e)}"}), 500
->>>>>>> Stashed changes
 
 if __name__ == '__main__':
     app.run(debug=True)
