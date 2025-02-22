@@ -1,0 +1,26 @@
+{
+    "build": {
+      "command": "npm run build",
+      "output": "dist"
+    },
+    "start": "npm start",
+    "services": [
+      {
+        "name": "backend",
+        "build": {
+          "command": "pip install -r requirements.txt",
+          "output": "backend"
+        },
+        "start": "python backend/app.py"
+      },
+      {
+        "name": "frontend",
+        "build": {
+          "command": "npm run build",
+          "output": "frontend"
+        },
+        "start": "npm start --prefix frontend"
+      }
+    ]
+  }
+  

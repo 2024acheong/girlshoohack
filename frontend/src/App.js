@@ -8,13 +8,6 @@ import {
 } from 'firebase/auth';
 import './App.css';
 
-// Mock food recognition database (replace with API calls)
-const mockDatabase = {
-  'burger': { name: 'Burger', calories: 354 },
-  'apple': { name: 'Apple', calories: 95 },
-  'pizza': { name: 'Pizza', calories: 285 }
-};
-
 function App() {
   const [user, setUser] = useState(null);
   const [totalCalories, setTotalCalories] = useState(0);
